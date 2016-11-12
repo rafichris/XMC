@@ -1,0 +1,44 @@
+{
+  "network": {
+    "ssid": "",
+    "passphrase": "",
+    "ip": [
+      192,
+      168,
+      1,
+      10
+    ],
+    "netmask": [
+      255,
+      255,
+      255,
+      0
+    ],
+    "gateway": [
+      192,
+      168,
+      1,
+      1
+    ],
+    "dhcp": true,
+    "ap_fallback": true
+  },
+
+  "device": {
+    "id": "XMC #000"
+  },
+
+  "e131": {
+    "universe": 1,
+    "channel_start": 1,
+    "channel_count": 16,
+    "multicast": false
+  },
+
+  "channel": {
+    "gamma": true,
+    "toggle": true,
+    "zero": true,
+	"mapping": "1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16"
+  }
+}

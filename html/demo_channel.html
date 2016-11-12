@@ -1,0 +1,98 @@
+<title id="title"></title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" type="text/css" href="style.css">
+<!--<body onload="GetButtons();">-->
+<a href="/" class="btn btn--s">&lt;</a>&nbsp;&nbsp;<strong>Channel Demo</strong>
+
+<hr>
+<div id="buttons">
+    Loading buttons ...
+</div>
+
+<hr>
+
+<table border="0" cellspacing="0" cellpadding="3">
+<tr>Set value to all channels:<td align="right"><input id="slider1" type="range" min="0" max="255" step="1" value ="128" onchange="printValue('slider1','rangeValue1')"/></td><td><input type="text" id="rangeValue1" name="rangeValue1" value="" onchange="printValueRev('slider1','rangeValue1')" style="width:40px"></td><td><button onclick="ps('rangeValue1')" style="width:60px" class="btn btn--m btn--green btn_flat">Set</button></td></tr>
+</table>   
+
+<table border="0" cellspacing="0" cellpadding="3">
+<tr>ON-OFF Toggling (ms):<td align="right"><input id="slider2" type="range" min="1" max="10000" step="1" value="1000" onchange="printValue('slider2','rangeValue2')"/></td><td><input type="text" id="rangeValue2" name="rangeValue2" value="" onchange="printValueRev('slider2','rangeValue2')" style="width:40px"></td><td><button onclick="ps('rangeValue2')" style="width:60px" class="btn btn--m btn--green btn_flat">Run</button></td></tr>
+</table>   
+
+<table border="0" cellspacing="0" cellpadding="3">
+<tr>Hopping (ms):<td align="right"><input id="slider3" type="range" min="1" max="10000" step="1" value="1000" onchange="printValue('slider3','rangeValue3')"/></td><td><input type="text" id="rangeValue3" name="rangeValue3" value="" onchange="printValueRev('slider3','rangeValue3')"  style="width:40px"></td><td><button onclick="ps('rangeValue3')" style="width:60px" class="btn btn--m btn--green btn_flat">Run</button></td></tr>
+</table>   
+
+<table border="0" cellspacing="0" cellpadding="3">
+<tr>Flipping (ms):<td align="right"><input id="slider4" type="range" min="1" max="10000" step="1" value="1000" onchange="printValue('slider4','rangeValue4')"/></td><td><input type="text" id="rangeValue4" name="rangeValue4" value="" onchange="printValueRev('slider4','rangeValue4')"  style="width:40px"></td><td><button onclick="ps('rangeValue4')" style="width:60px" class="btn btn--m btn--green btn_flat">Run</button></td></tr>
+</table>   
+
+
+<table border="0" cellspacing="0" cellpadding="3">
+<tr>Randomize (ms):<td align="right">
+    <input id="slider5" type="range" min="1" max="10000" step="1" value="1000" onchange="printValue('slider5','rangeValue5')"/>
+</td>
+    <td><input type="text" id="rangeValue5" name="rangeValue5" value="" onchange="printValueRev('slider5','rangeValue5')"  style="width:40px"></td><td>
+    <button onclick="ps('rangeValue5')" style="width:60px" class="btn btn--m btn--green btn_flat">Run</button>
+    </td></tr>
+</table>   
+
+<hr>
+<table border="0" cellspacing="0" cellpadding="3">
+<tr><td align="center">
+    <button onclick="onoff('stopDemo',1)" style="width:250px" class="btn btn--m btn--red">STOP DEMO</button></td></tr>
+</table>
+
+
+<script>
+    function printValue(sliderID, textbox) {
+        var x = document.getElementById(textbox);
+        var y = document.getElementById(sliderID);
+        x.value = y.value;
+    }
+    function printValueRev(sliderID, textbox) {
+        var x = document.getElementById(textbox);
+        var y = document.getElementById(sliderID);
+        y.value = x.value;
+    }
+    window.onload = function() {
+        printValue('slider1', 'rangeValue1'); 
+        printValue('slider2', 'rangeValue2'); 
+        printValue('slider3', 'rangeValue3'); 
+        printValue('slider4', 'rangeValue4'); 
+        printValue('slider5', 'rangeValue5'); 
+    }
+
+</script>
+
+<script type="text/javascript" src="script.js"></script>
+
+<script>
+
+    setInterval(GetButtons,1000);
+	function GetButtons()	{
+		setValues("/demo/getbuttons");
+	}
+
+    function onoff(type, nb) {
+        var http = new XMLHttpRequest();
+        http.open("POST", "/demo/receivevals", true);
+        http.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+        var params = type.toString() + "=" + nb.toString();
+        http.send(params);
+        http.onload = function() {
+        //    alert(http.responseText);
+        }
+    }
+    function ps(id) {
+        var http = new XMLHttpRequest();
+        http.open("POST", "/demo/receivevals", true);
+        http.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+        var params = id.toString() + "=" + document.getElementById(id.toString()).value;
+        http.send(params);
+        http.onload = function() {
+        //    alert(http.responseText);
+        }
+    }
+</script>
+
