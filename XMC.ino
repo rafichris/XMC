@@ -27,14 +27,8 @@
 /*****************************************/
 
 /* Fallback configuration if config.json is empty or fails */
-//const char ssid[] = "ENTER_SSID_HERE";
-//const char passphrase[] = "ENTER_PASSPHRASE_HERE";
-
-const char ssid[] = "Pirello";
-const char passphrase[] = "AAAABBBBCCCCD";
-
-//const char ssid[]       = "DMX";             /* Replace with your SSID */
-//const char passphrase[] = "Christmas";       /* Replace with your WPA2 passphrase */
+const char ssid[]       = "ENTER_SSID_HERE";             /* Replace with your SSID */
+const char passphrase[] = "ENTER_PASSPHRASE_HERE";       /* Replace with your WPA2 passphrase */
 
 /*****************************************/
 /*         END - Configuration           */
