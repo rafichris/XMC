@@ -37,12 +37,6 @@ Resources
 - Firmware: http://github.com/rafichris/XMC
 - Hardware: (in work)
 
-
-Resources
----------
-- Firmware: http://github.com/forkineye/ESPixelStick
-- Hardware: http://forkineye.com/ESPixelStick
-
 Credits
 -------
 - Dieter Reinhardt an Markus Felinger for inspiration.
