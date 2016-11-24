@@ -30,7 +30,7 @@
 #include "_E131.h"
 
 /* Name and version */
-const char VERSION[] = "1.0";
+const char VERSION[] = "1.1";
 
 /* Configuration file params */
 const char CONFIG_FILE[] = "/config.json";
