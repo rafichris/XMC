@@ -1,0 +1,68 @@
+<title id="title"></title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" type="text/css" href="style.css">
+<a href="/" class="btn btn--s">&lt;</a>&nbsp;&nbsp;<strong>Schedule Configuration</strong>
+<hr>
+
+<!--Current time CET: <div id="curTime">20:15:37</div>
+<hr>-->
+<table border="0" cellspacing="0" cellpadding="3">
+<tr><td width="210px" align="right"><font size="1" color="grey">NTP Timestamp:</font><br>
+<div id="NTPTime">... loading NTP Timestamp</div></td><td><button id="refresh" onclick="syncNTP()" style="width:110px" class="btn btn--m btn--green btn_flat">Get NTP Timestamp</button></td></tr>
+
+    <tr><td align="right">HH:MM:SS <br><input class="time" type="text" id="hh_clock" name="hh_clock" value="">:<input class="time" type="text" id="mm_clock" name="mm_clock" value="">:<input class="time" type="text" id="ss_clock" name="ss_clock" value=""></td><td><button onclick="setTimeMan()" style="width:110px" class="btn btn--m btn--green btn_flat">Set Clock Manually</button></td></tr>
+</table>  
+    
+    
+<hr>
+<form action="" method="post">
+<table border="0" cellspacing="0" cellpadding="3">
+<tr><td align="right">Enable Scheduler:<br><font size="1" color="grey">otherwise <br>outputs are <br>always enabled</font></td><td><input type="checkbox" id="schchk" name="schchk"></td></tr>
+<tr><td align="right">#1:</td><td><input class="time" type="text" id="hh01a" name="hh01a" value="00" maxlength="2">:<input class="time" type="text" id="mm01a" name="mm01a" value="00" maxlength="2">-<input class="time" type="text" id="hh01b" name="hh01b" value="24" maxlength="2">:<input class="time" type="text" id="mm01b" name="mm01b" value="00" maxlength="2"></td></tr>
+<tr><td align="right">#2:</td><td><input class="time" type="text" id="hh02a" name="hh02a" value="00" maxlength="2">:<input class="time" type="text" id="mm02a" name="mm02a" value="00" maxlength="2">-<input class="time" type="text" id="hh02b" name="hh02b" value="00" maxlength="2">:<input class="time" type="text" id="mm02b" name="mm02b" value="00" maxlength="2"></td></tr>
+<tr><td align="right">#3:</td><td><input class="time" type="text" id="hh03a" name="hh03a" value="00" maxlength="2">:<input class="time" type="text" id="mm03a" name="mm03a" value="00" maxlength="2">-<input class="time" type="text" id="hh03b" name="hh03b" value="00" maxlength="2">:<input class="time" type="text" id="mm03b" name="mm03b" value="00" maxlength="2"></td></tr>
+<tr><td align="right">#4:</td><td><input class="time" type="text" id="hh04a" name="hh04a" value="00" maxlength="2">:<input class="time" type="text" id="mm04a" name="mm04a" value="00" maxlength="2">-<input class="time" type="text" id="hh04b" name="hh04b" value="00" maxlength="2">:<input class="time" type="text" id="mm04b" name="mm04b" value="00" maxlength="2"></td></tr>
+<tr><td align="right">Disable <br>outputs after <br>DMX timeout <br>(seconds):<br><font size="1" color="grey">Disable outputs, <br>if DMX messages <br>are not updated <br>frequently within <br>timeout value <br>(0 = not timeout)</font></td><td><input type="text" id="timeout" name="timeout" value="0"><br><font size="1" color="grey"><div id="curDMXtimout">currently ... seconds<br>without DMX message</div></font></td></tr>
+<tr><td colspan="2" align="center"><input type="submit" style="width:150px" class="btn btn--m btn--green" value="Save"></td></tr>
+</table>
+</form>
+
+<script type="text/javascript" src="script.js"></script>
+<script>
+    setValues("/config/getCurTime");
+    setValues("/config/schedvals");
+</script>
+
+<script>
+    setInterval(getDMXtimout,1000);
+	function getDMXtimout()	{
+		setValues("/config/getDMXto");
+	}
+    function syncNTP() {
+        document.getElementById("refresh").disabled = true;
+        var http = new XMLHttpRequest();
+        http.open("POST", "/config/syncNTP", true);
+        http.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+        var params = "syncNTP=1";
+        http.send(params);
+        http.onload = function() {
+        //    alert(http.responseText);
+                setTimeout(function() {
+                    setValues("/config/getCurTime");
+                    document.getElementById("refresh").disabled = false;
+                }, 1000);
+        }
+    }
+
+    function setTimeMan() {
+        var http = new XMLHttpRequest();
+        http.open("POST", "/config/setTimeMan", true);
+        http.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+        var params = "hh_clock=" + document.getElementById("hh_clock").value + "&mm_clock=" + document.getElementById("mm_clock").value + "&ss_clock=" + document.getElementById("ss_clock").value;
+        http.send(params);
+        http.onload = function() {
+        //    alert(http.responseText);
+        }
+    }
+</script>
+

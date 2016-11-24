@@ -54,6 +54,9 @@ class ChannelDriver {
  public:
     int begin();
     int begin(uint16_t  numChannels);
+    void enableOutput();
+    void disableOutput();
+    String getOEstatus();
     void setupPins(uint8_t pinSDA, uint8_t pinSCL, uint8_t pinOE);
     void setupPCA9685(bool resetOutputs, uint16_t maxChannels);
 
@@ -72,12 +75,13 @@ class ChannelDriver {
 
  private:
       uint8_t    clockPin;    // Pin for bit-banging
-      uint8_t    dataPin;    // Pin for bit-banging
-      uint8_t    oePin;    // Pin for bit-banging
-      uint16_t   numChannels;   // number of channels we want to process with pca9685 module
-      uint8_t    *chandata;       // Channel buffer
-      uint8_t    *pbuff;         // GECE Packet Buffer
-      boolean    gamma;      // Gamma correction flag
+      uint8_t    dataPin;     // Pin for bit-banging
+      uint8_t    oePin;       // Pin for bit-banging
+      bool       oePinState;
+      uint16_t   numChannels; // number of channels we want to process with pca9685 module
+      uint8_t    *chandata;   // Channel buffer
+      uint8_t    *pbuff;      // GECE Packet Buffer
+      boolean    gamma;       // Gamma correction flag
    
 };
 

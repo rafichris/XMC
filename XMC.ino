@@ -35,6 +35,7 @@ const char passphrase[] = "ENTER_PASSPHRASE_HERE";       /* Replace with your WP
 /*****************************************/
 
 #include <Arduino.h>
+#include "time_ntp.h"
 #include <ESP8266WiFi.h>
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
@@ -59,6 +60,7 @@ AsyncWebServer      web(HTTP_PORT);     /* Web Server */
 #include "page_config_channel.h"
 #include "page_config_channel_mapping.h"
 #include "page_demo_channel.h"
+#include "page_config_scheduler.h"
 
 /* Common Web pages and handlers */
 #include "page_root.h"
@@ -138,6 +140,9 @@ void setup() {
 
     /* Update Config and PCA9685 */
     updateConfig();
+
+    updateClockNTP();
+
 }
 
 int initWifi() {
@@ -230,6 +235,14 @@ void initWeb() {
     web.on("/config_ch_map.html", HTTP_POST, send_config_channel_mapping_html);
     web.on("/demo_channel.html", HTTP_POST, send_demo_channel_html);
     web.serveStatic("/", SPIFFS, "/www/").setDefaultFile("channel.html");
+
+    /* Scheduler */
+    web.on("/config/schedvals", HTTP_GET, send_config_scheduler_vals);        /* AJAX handler */
+    web.on("/config/getCurTime",    HTTP_GET, send_config_scheduler_curTime_vals);/* AJAX Handler */
+    web.on("/config/syncNTP",      HTTP_POST, send_scheduler_receive_vals);      /* POST handler */
+    web.on("/config/setTimeMan",    HTTP_POST, send_scheduler_receive_vals);      /* POST handler */
+    web.on("/config_schedule.html", HTTP_POST, send_config_schedule_html);  /* Static POST handler */
+    web.on("/config/getDMXto", HTTP_GET, send_scheduler_current_dmx_timout);
 
     web.onNotFound([](AsyncWebServerRequest *request) {
         request->send(404, "text/plain", "Page '" + String(request->url()) + "' not found :( ");
@@ -368,6 +381,27 @@ void loadConfig() {
         config.zero = json["channel"]["zero"];
         config.mapping = json["channel"]["mapping"].as<String>();
 
+        /* Scheduler */
+        config.schedule = json["scheduler"]["active"];
+        config.dmxTimeout = json["scheduler"]["DMXtimeout"];
+        config.scheduler_vals[0][0][0] = json["scheduler"]["hh01a"];
+        config.scheduler_vals[0][0][1] = json["scheduler"]["mm01a"];
+        config.scheduler_vals[0][1][0] = json["scheduler"]["hh01b"];
+        config.scheduler_vals[0][1][1] = json["scheduler"]["mm01b"];
+        config.scheduler_vals[1][0][0] = json["scheduler"]["hh02a"];
+        config.scheduler_vals[1][0][1] = json["scheduler"]["mm02a"];
+        config.scheduler_vals[1][1][0] = json["scheduler"]["hh02b"];
+        config.scheduler_vals[1][1][1] = json["scheduler"]["mm02b"];
+        config.scheduler_vals[2][0][0] = json["scheduler"]["hh03a"];
+        config.scheduler_vals[2][0][1] = json["scheduler"]["mm03a"];
+        config.scheduler_vals[2][1][0] = json["scheduler"]["hh03b"];
+        config.scheduler_vals[2][1][1] = json["scheduler"]["mm03b"];
+        config.scheduler_vals[3][0][0] = json["scheduler"]["hh04a"];
+        config.scheduler_vals[3][0][1] = json["scheduler"]["mm04a"];
+        config.scheduler_vals[3][1][0] = json["scheduler"]["hh04b"];
+        config.scheduler_vals[3][1][1] = json["scheduler"]["mm04b"];
+
+        /* Mapping */
         if (mapping) free(mapping);
         mapping = static_cast<uint16_t *>(malloc(config.channel_count*2));
         
@@ -432,6 +466,28 @@ void serializeConfig(String &jsonString, bool pretty, bool creds) {
     channel["toggle"] = config.toggle;
     channel["zero"] = config.zero;
 
+    /* Scheduler */
+    JsonObject &schdlr = json.createNestedObject("scheduler");
+    schdlr["active"] = config.schedule;
+    schdlr["DMXtimeout"] = config.dmxTimeout;
+    
+    schdlr["hh01a"] =  config.scheduler_vals[0][0][0];
+    schdlr["mm01a"] =  config.scheduler_vals[0][0][1];
+    schdlr["hh01b"] =  config.scheduler_vals[0][1][0];
+    schdlr["mm01b"] =  config.scheduler_vals[0][1][1];
+    schdlr["hh02a"] =  config.scheduler_vals[1][0][0];
+    schdlr["mm02a"] =  config.scheduler_vals[1][0][1];
+    schdlr["hh02b"] =  config.scheduler_vals[1][1][0];
+    schdlr["mm02b"] =  config.scheduler_vals[1][1][1];
+    schdlr["hh03a"] =  config.scheduler_vals[2][0][0];
+    schdlr["mm03a"] =  config.scheduler_vals[2][0][1];
+    schdlr["hh03b"] =  config.scheduler_vals[2][1][0];
+    schdlr["mm03b"] =  config.scheduler_vals[2][1][1];
+    schdlr["hh04a"] =  config.scheduler_vals[3][0][0];
+    schdlr["mm04a"] =  config.scheduler_vals[3][0][1];
+    schdlr["hh04b"] =  config.scheduler_vals[3][1][0];
+    schdlr["mm04b"] =  config.scheduler_vals[3][1][1];
+
     /* Mapping */
     String mappingStr = "";
     for (uint16_t i = 0; i < config.channel_count-1 ; i++)
@@ -465,10 +521,22 @@ void saveConfig() {
     }
 }
 
+bool enableOutput_scheduler(){
+    curTime = getSecondsSinceMidnight();
+     for (int i = 0; i < 4; i++) {
+        start_midnight = (config.scheduler_vals[i][0][0]*60 + config.scheduler_vals[i][0][1])*60;
+        end_midnight   = (config.scheduler_vals[i][1][0]*60 + config.scheduler_vals[i][1][1])*60;
+        
+        if(start_midnight < end_midnight && start_midnight <= curTime && curTime <= end_midnight)   return true;
+        if(start_midnight > end_midnight && (start_midnight <= curTime || curTime <= end_midnight)) return true;
+    }
+    return false;
+}
+
 /* Main Loop */
 void loop() {
 
-    /* Reboot handler */
+    /* Reset handler */
     if (reset) {
         /* Initialize config structure, if reset=true */
         loadConfig();
@@ -481,9 +549,16 @@ void loop() {
         ESP.restart();
     }
 
+    /* Update system time */
+    if (ntp_update){ 
+       ntp_update = false; 
+       updateClockNTP();
+    }
+      
     /* DEMO handler */
     if (demo) {
         switch (demo) {
+          channels.enableOutput();
             case 1: /* ALL */
                 for (int i = 0; i < config.channel_count; i++) {
                     channels.setValue(i, demoChannelValue);
@@ -562,12 +637,32 @@ void loop() {
         return;
     }
 
-      
+    /* Timeouot & Scheduler */
+    if (config.schedule){
+        if (!locked && millis() - lastMillis > UPD_INTERVAL){
+            lastMillis = millis();
+            if (enableOutput_scheduler()){ 
+                channels.enableOutput();
+            }else{
+                channels.disableOutput();
+            }
+        }
+    }else{
+        if (config.dmxTimeout > 0 && (millis() - lastDMXPacket) / 1000 > config.dmxTimeout)
+            /* disable output if timeout > 0 and last packet is older than timout */
+            channels.disableOutput();
+        else /* default: enable output */
+            channels.enableOutput();
+    }  
+    
     /* Parse a packet and update channels */
     if (e131.parsePacket()) {
         if ((e131.universe >= config.universe) && (e131.universe <= uniLast)) {
             /* Toggle Built-In LED */
             toggleBuiltInLED();
+
+            /* get timestampf for last valid DMX packet */
+            lastDMXPacket = millis();
             
             /* Universe offset and sequence tracking */
             uint8_t uniOffset = (e131.universe - config.universe);

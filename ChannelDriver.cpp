@@ -73,6 +73,7 @@ void ChannelDriver::setupPins(uint8_t pinSDA, uint8_t pinSCL, uint8_t pinOE) {
 
     pinMode(this->oePin, OUTPUT);
     digitalWrite(this->oePin, HIGH); //set OE high to disable pca9685 outputs
+    oePinState = false;
     
     delay(100);
     
@@ -81,11 +82,31 @@ void ChannelDriver::setupPins(uint8_t pinSDA, uint8_t pinSCL, uint8_t pinOE) {
     delay(100);
 }
 
+void ChannelDriver::enableOutput(){
+    if(oePinState==false){
+        digitalWrite(this->oePin, LOW);
+        oePinState = true;
+    }
+}
+
+void ChannelDriver::disableOutput(){
+    if(oePinState){
+        digitalWrite(this->oePin, HIGH);
+        oePinState = false;
+    }
+}
+
+String ChannelDriver::getOEstatus(){
+    if(oePinState) return "OE:enabled";
+    else return "OE:disabled";
+}
+
 void ChannelDriver::setupPCA9685(bool resetOutputs, uint16_t maxChannels) {
     // Datasheet: https://cdn-shop.adafruit.com/datasheets/PCA9685.pdf
     
     // disable output first
     digitalWrite(this->oePin, HIGH); //set OE high to disable outputs.
+    oePinState = false;
 
     // setup pin assignment
     setupPins(I2C_DATA_PIN, I2C_CLOCK_PIN, PCA9685_OE_PIN);
@@ -124,6 +145,7 @@ void ChannelDriver::setupPCA9685(bool resetOutputs, uint16_t maxChannels) {
 
     // enable output
     digitalWrite(this->oePin, LOW); //set OE low to enable outputs.
+    oePinState = true;
 }
 
 void ChannelDriver::setGamma(bool gamma_flag) {

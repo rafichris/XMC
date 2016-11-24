@@ -23,22 +23,39 @@
     "dhcp": true,
     "ap_fallback": true
   },
-
   "device": {
     "id": "XMC #000"
   },
-
   "e131": {
     "universe": 1,
     "channel_start": 1,
     "channel_count": 16,
     "multicast": false
   },
-
   "channel": {
     "gamma": true,
     "toggle": true,
     "zero": true,
-	"mapping": "1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16"
+    "mapping": "1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16"
+  },
+  "scheduler": {
+    "active": false,
+    "DMXtimeout": 0,
+    "hh01a": 0,
+    "mm01a": 0,
+    "hh01b": 24,
+    "mm01b": 0,
+    "hh02a": 0,
+    "mm02a": 0,
+    "hh02b": 0,
+    "mm02b": 0,
+    "hh03a": 0,
+    "mm03a": 0,
+    "hh03b": 0,
+    "mm03b": 0,
+    "hh04a": 0,
+    "mm04a": 0,
+    "hh04b": 0,
+    "mm04b": 0
   }
 }

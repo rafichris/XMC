@@ -11,6 +11,10 @@ hr {
     height: 1px;
 }
 
+.time {
+    width: 2.3em;
+}
+
 .btn,
 .btn:link,
 .btn:visited,

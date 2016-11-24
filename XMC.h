@@ -45,6 +45,7 @@ const char CONFIG_FILE[] = "/config.json";
 #define CONNECT_TIMEOUT 15000   /* 15 seconds */
 #define REBOOT_DELAY    100     /* Delay for rebooting once reboot flag is set */
 #define LOG_PORT        Serial  /* Serial port for console logging */
+#define UPD_INTERVAL    1000    /*  */
 
 /* E1.33 / RDMnet stuff - to be moved to library */
 #define RDMNET_DNSSD_SRV_TYPE   "draft-e133.tcp"
@@ -92,6 +93,11 @@ typedef struct {
     bool        zero;            /* Reset all PCA9685 values to zero during startup */
     String      mapping;         /* Map DMX channels to XMC output port */
 
+    /* Scheduler */
+    bool        schedule;        /* Use scheduler */
+    uint8_t     scheduler_vals[4][2][2]; /* 1|2|3|4 / start|end / hh|mm */ 
+    uint8_t     dmxTimeout;
+
 } config_t;
 
 /* Globals */
@@ -102,12 +108,20 @@ uint16_t            uniLast = 1;    /* Last Universe to listen for */
 uint16_t            *mapping;       /* Mapping Array: Map DMX (index) to Output */
 bool                reset = false;  /* Flag to reset the ESP */
 bool                reboot = false; /* Flag to reboot the ESP */
+bool                ntp_update = false; /* Update NTP timestamp */
 
 uint16_t             demoChannelValue = 1;     /* Initial demo value */
 uint8_t              demo             = 0;     /* Demo type for sequences 0=off */
 static unsigned long lWaitMillis      = 1;     /* Waiting time for demo sequences */
 uint8_t              demoCounter      = 0;     /* Auxiliary value for demo sequences */
 bool                 gpio2State       = false; /* GPIO 2 state - toggle GPIO2 led if enabled */
+
+unsigned long       curTime;
+unsigned long       start_midnight;
+unsigned long       end_midnight;
+bool                locked = 0;
+unsigned long       lastMillis = 0;
+unsigned long       lastDMXPacket = 0;
 
 /* Called from web handlers */
 void saveConfig();
@@ -118,6 +132,7 @@ void loadConfig();
 int  initWifi();
 void initWeb();
 void updateConfig();
+bool enableOutput_scheduler();
 
 /* Toggle ESP-12E's built-in LED */
 void toggleBuiltInLED(){
